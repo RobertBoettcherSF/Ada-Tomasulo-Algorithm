@@ -109,57 +109,56 @@ package body Tomasulo_Algorithm is
          begin
             if Inst.Op = NOP then
                State.PC := State.PC + 1;
-               return;
-            end if;
-
-            -- Find Free RS
-            for I in State.RS'Range loop
-               if not State.RS(I).Busy then
-                  if (Inst.Op = ADD or Inst.Op = SUB) and (I = Add1 or I = Add2 or I = Add3) then
-                     Allocated_RS := I;
-                     exit;
-                  elsif (Inst.Op = MUL or Inst.Op = DIV) and (I = Mult1 or I = Mult2) then
-                     Allocated_RS := I;
-                     exit;
-                  end if;
-               end if;
-            end loop;
-
-            if Allocated_RS /= None then
-               State.RS(Allocated_RS).Busy := True;
-               State.RS(Allocated_RS).Op := Inst.Op;
-               State.RS(Allocated_RS).Done := False;
-               State.RS(Allocated_RS).Cycles := Get_Latency(Inst.Op);
-
-               -- Read Src1
-               if Inst.Src1 /= None_Reg then
-                  if State.RAT(Inst.Src1) /= None then
-                     State.RS(Allocated_RS).Qj := State.RAT(Inst.Src1);
-                  else
-                     State.RS(Allocated_RS).Vj := State.Regs(Inst.Src1);
-                     State.RS(Allocated_RS).Qj := None;
-                  end if;
-               end if;
-
-               -- Read Src2
-               if Inst.Src2 /= None_Reg then
-                  if State.RAT(Inst.Src2) /= None then
-                     State.RS(Allocated_RS).Qk := State.RAT(Inst.Src2);
-                  else
-                     State.RS(Allocated_RS).Vk := State.Regs(Inst.Src2);
-                     State.RS(Allocated_RS).Qk := None;
-                  end if;
-               end if;
-
-               -- Rename Target (RAT)
-               if Inst.Dest /= None_Reg then
-                  State.RAT(Inst.Dest) := Allocated_RS;
-               end if;
-
-               State.PC := State.PC + 1;
             else
-               -- Structural Hazard: Cannot issue, wait for next cycle
-               null; 
+               -- Find Free RS
+               for I in State.RS'Range loop
+                  if not State.RS(I).Busy then
+                     if (Inst.Op = ADD or Inst.Op = SUB) and (I = Add1 or I = Add2 or I = Add3) then
+                        Allocated_RS := I;
+                        exit;
+                     elsif (Inst.Op = MUL or Inst.Op = DIV) and (I = Mult1 or I = Mult2) then
+                        Allocated_RS := I;
+                        exit;
+                     end if;
+                  end if;
+               end loop;
+
+               if Allocated_RS /= None then
+                  State.RS(Allocated_RS).Busy := True;
+                  State.RS(Allocated_RS).Op := Inst.Op;
+                  State.RS(Allocated_RS).Done := False;
+                  State.RS(Allocated_RS).Cycles := Get_Latency(Inst.Op);
+
+                  -- Read Src1
+                  if Inst.Src1 /= None_Reg then
+                     if State.RAT(Inst.Src1) /= None then
+                        State.RS(Allocated_RS).Qj := State.RAT(Inst.Src1);
+                     else
+                        State.RS(Allocated_RS).Vj := State.Regs(Inst.Src1);
+                        State.RS(Allocated_RS).Qj := None;
+                     end if;
+                  end if;
+
+                  -- Read Src2
+                  if Inst.Src2 /= None_Reg then
+                     if State.RAT(Inst.Src2) /= None then
+                        State.RS(Allocated_RS).Qk := State.RAT(Inst.Src2);
+                     else
+                        State.RS(Allocated_RS).Vk := State.Regs(Inst.Src2);
+                        State.RS(Allocated_RS).Qk := None;
+                     end if;
+                  end if;
+
+                  -- Rename Target (RAT)
+                  if Inst.Dest /= None_Reg then
+                     State.RAT(Inst.Dest) := Allocated_RS;
+                  end if;
+
+                  State.PC := State.PC + 1;
+               else
+                  -- Structural Hazard: Cannot issue, wait for next cycle
+                  null; 
+               end if;
             end if;
          end;
       end if;
