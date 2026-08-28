@@ -87,7 +87,7 @@ begin
    -- TEST 8 - Division by Zero Exception
    Put_Line ("TEST 8 - Execution Faults (Div by Zero)");
    declare
-      Div_Zero : Instruction_Array(1..1) := ((DIV, F10, F0, F1));
+      Div_Zero : Instruction_Array(1..1) := (1 => (DIV, F10, F0, F1));
    begin
       Initialize (State);
       State.Regs(F0) := 10; State.Regs(F1) := 0;
@@ -124,7 +124,7 @@ begin
    -- TEST 10 - Halt State Detection
    Put_Line ("TEST 10 - Machine Halts on Completion");
    Initialize (State);
-   Step_Cycle (State, ((NOP, None_Reg, None_Reg, None_Reg)));
+   Step_Cycle (State, (1 => (NOP, None_Reg, None_Reg, None_Reg)));
    Put_Line ("  10.1 Assert State.Is_Halted flag is True");
    Assert (State.Is_Halted, "Did not halt on NOP complete");
    Put_Line ("      PASS");
@@ -144,7 +144,7 @@ begin
    -- TEST 12 - Execution Time verification (MUL Latency)
    Put_Line ("TEST 12 - Variable Execution Latency (MUL)");
    declare
-      Mul_Prog : Instruction_Array(1..1) := ((MUL, F1, F2, F3));
+      Mul_Prog : Instruction_Array(1..1) := (1 => (MUL, F1, F2, F3));
    begin
       Initialize(State);
       Step_Cycle (State, Mul_Prog);
