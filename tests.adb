@@ -107,17 +107,23 @@ begin
    -- TEST 9 - Structural Hazards (RS Full)
    Put_Line ("TEST 9 - Structural Hazard Handling");
    declare
-      Full_RS : Instruction_Array(1..4) := (
-         (ADD, F0, F1, F2), (ADD, F3, F1, F2), (ADD, F4, F1, F2), (ADD, F5, F1, F2)
+      Full_RS : Instruction_Array(1..5) := (
+         (DIV, F1, F2, F3), -- Blocks F1 for 40 cycles to trap following ADDs
+         (ADD, F4, F1, F2), -- Takes Add1, waits for F1
+         (ADD, F5, F1, F2), -- Takes Add2, waits for F1
+         (ADD, F6, F1, F2), -- Takes Add3, waits for F1
+         (ADD, F7, F1, F2)  -- 4th ADD should stall due to structural hazard
       );
    begin
       Initialize(State);
-      Step_Cycle (State, Full_RS);
-      Step_Cycle (State, Full_RS);
-      Step_Cycle (State, Full_RS);
-      Step_Cycle (State, Full_RS);
+      State.Regs(F3) := 1; -- Avoid division by zero on DIV instruction
+      Step_Cycle (State, Full_RS); -- Cycle 1: Issues DIV
+      Step_Cycle (State, Full_RS); -- Cycle 2: Issues ADD1
+      Step_Cycle (State, Full_RS); -- Cycle 3: Issues ADD2
+      Step_Cycle (State, Full_RS); -- Cycle 4: Issues ADD3
+      Step_Cycle (State, Full_RS); -- Cycle 5: Attempts 4th ADD, Structural Hazard
       Put_Line ("  9.1 Assert 4th Issue stalled (PC blocked)");
-      Assert (State.PC = 4, "Structural hazard not stalling");
+      Assert (State.PC = 5, "Structural hazard not stalling");
       Put_Line ("      PASS");
    end;
 
